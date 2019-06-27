@@ -28,7 +28,8 @@ dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
 
-    implementation 'com.github.ubikampus:Bluetooth-location-server:feature~obsMockker-SNAPSHOT'
+    implementation 'com.github.ubikampus:Bluetooth-location-server:feature~ObservationLifetime-SNAPSHOT'
+
 }
 
 // Define the main class for the application
