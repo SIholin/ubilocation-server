@@ -1,4 +1,4 @@
-package fi.helsinki.server;
+package fi.helsinki.btls;
 
 import static org.junit.Assert.*;
 import org.junit.After;
