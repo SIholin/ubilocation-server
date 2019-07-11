@@ -28,8 +28,9 @@ dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
 
-    implementation 'com.github.ubikampus:Bluetooth-location-server:feature~ObservationLifetime-SNAPSHOT'
+    implementation 'com.github.ubikampus:Bluetooth-location-server:feature~CalculateDistanceFromRssi-SNAPSHOT'
 
+    
 }
 
 // Define the main class for the application

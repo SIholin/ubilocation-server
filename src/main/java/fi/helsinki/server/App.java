@@ -21,6 +21,7 @@ public class App {
         boolean debug = Boolean.parseBoolean(handler.getProperty("debug"));
 
         IMqttService mqttService = new MqttService(mqttUrl,subscribeTopic,publishTopic);
+        mqttService.setObservationLifetime(5);
 
         int positionsDimension = 3;
         IObserverService observerService = new ObserverService(positionsDimension);
@@ -49,6 +50,7 @@ public class App {
 
         ObservationGenerator obsMock = new ObservationGenerator(12, 30, observerKeys);
         ILocationService service = new LocationService3D(observerService);
+        service.setCalculateDistance(true);
         while (true) {
             try {
                 Thread.sleep(1000);
@@ -59,12 +61,32 @@ public class App {
                 } else {
                     beacons = mqttService.getBeacons();
                 }
-
+                printDistances(service, beacons);
                 List<Location> locations = service.calculateAllLocations(beacons);
                 mqttService.publish(locations);
             } catch (Exception ex) {
                 System.out.println(ex.toString());
             }
         }
+    }
+
+    private static void printDistances(ILocationService service, List<Beacon> beacons) {
+        beacons.forEach(x -> {
+            String distanceString = x.getId();
+            List<String> rasps = new ArrayList<>();
+            for (int i = x.getObservations().size() - 1; i >= 0; i--) {
+                Observation observation = x.getObservations().get(i);
+                if (!rasps.contains(observation.getRaspId())) {
+                    rasps.add(observation.getRaspId());
+                    distanceString +=
+                            "\n" +
+                            observation.getRaspId() +
+                            ":\t" +
+                            service.getDistanceFromRssi(observation.getRssi(), x.getMinRSSI()) +
+                            "\t" + observation.getTimestamp();
+                }
+            }
+            System.out.println(distanceString);
+        });
     }
 }
