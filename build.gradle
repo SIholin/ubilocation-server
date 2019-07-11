@@ -28,8 +28,7 @@ dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
 
-    implementation 'com.github.ubikampus:Bluetooth-location-btls:feature~ObservationLifetime-SNAPSHOT'
-
+    implementation 'com.github.ubikampus:ubi-Indoor-Positioning:v0.1.0'
 }
 
 // Define the main class for the application
