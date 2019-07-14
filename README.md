@@ -45,7 +45,7 @@ To use with localhost MQTT server
 To use with external MQTT server
 
 *  From project root open in editor `config/mqttConfig.properties`
-*  Then change mqttUrls value to servers address and close the file
+*  Then change `mqttUrl` value to servers address and close the file
 *  In project root `docker-compose up btls`
 
 ## License
