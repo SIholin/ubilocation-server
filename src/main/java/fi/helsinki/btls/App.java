@@ -3,6 +3,8 @@
  */
 package fi.helsinki.btls;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import fi.helsinki.ubipositioning.datamodels.Beacon;
 import fi.helsinki.ubipositioning.datamodels.Location;
 import fi.helsinki.ubipositioning.datamodels.Observation;
@@ -15,12 +17,19 @@ import fi.helsinki.ubipositioning.utils.IObserverService;
 import fi.helsinki.ubipositioning.utils.ObservationGenerator;
 import fi.helsinki.ubipositioning.utils.ObserverService;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class App {
+    private static Map<String, Beacon> beacons;
+
     public static void main(String[] args) {
+        Gson gson = createGson();
+        beacons = new HashMap<>();
+
         PropertiesHandler handler = new PropertiesHandler("config/mqttConfig.properties");
 
         String subscribeTopic = handler.getProperty("subscribeTopic");
@@ -28,17 +37,25 @@ public class App {
         String mqttUrl = handler.getProperty("mqttUrl");
         boolean debug = Boolean.parseBoolean(handler.getProperty("debug"));
 
-        IMqttService mqttService = new MqttService(mqttUrl,subscribeTopic,publishTopic);
-        mqttService.setObservationLifetime(5);
+        IMqttService observationData = new MqttService(mqttUrl, subscribeTopic, publishTopic);
+        observationData.connect(s -> {
+            try {
+                Observation obs = gson.fromJson(s, Observation.class);
+                addObservation(obs);
+            } catch (Exception ex) {
+            }
+        });
 
         int positionsDimension = 3;
         IObserverService observerService = new ObserverService(positionsDimension);
-        Map<String, String> allProperties = new PropertiesHandler("config/rasps.properties").getAllProperties();
+        PropertiesHandler observerHandler = new PropertiesHandler("config/rasps.properties");
+        Map<String, String> allProperties = observerHandler.getAllProperties();
         List<Observer> all = new ArrayList<>();
         List<String> observerKeys = new ArrayList<>();
 
+        String regexForRasp = "/";
         allProperties.forEach((key, value) -> {
-            String[] rasp = value.split(":");
+            String[] rasp = value.split(regexForRasp);
             double[] temp = new double[positionsDimension];
 
             for (int i = 0; i < positionsDimension; i++) {
@@ -56,27 +73,87 @@ public class App {
             return;
         }
 
+        String config = handler.getProperty("observerConfigTopic");
+        String configStatus = handler.getProperty("observerConfigStatusTopic");
+
+        IMqttService observerData = new MqttService(mqttUrl, config, configStatus);
+        observerData.connect(s -> {
+            try {
+                Observer obs = gson.fromJson(s, Observer.class);
+                String message;
+
+                if (observerService.addObserver(obs)) {
+                    message = "success";
+
+                    double[] position = obs.getPosition();
+                    String pos = position[0] + regexForRasp + position[1] + regexForRasp + position[2];
+                    observerHandler.saveProperty(obs.getObserverId(), pos);
+                    observerHandler.persistProperties();
+                } else {
+                    message = "error";
+                }
+
+                observerData.publish(message);
+            } catch (Exception ex) {
+            }
+        });
+
         ObservationGenerator obsMock = new ObservationGenerator(12, 30, observerKeys);
         ILocationService service = new LocationService3D(observerService);
         service.setCalculateDistance(true);
         while (true) {
             try {
                 Thread.sleep(1000);
-                List<Beacon> beacons;
+                List<Beacon> data;
 
                 if (debug) {
-                    beacons = obsMock.getBeacons();
+                    data = obsMock.getBeacons();
                 } else {
-                    beacons = mqttService.getBeacons();
+                    data = new ArrayList<>(beacons.values());
                 }
-                printDistances(service, beacons);
-                List<Location> locations = service.calculateAllLocations(beacons);
-                mqttService.publish(locations);
+
+                List<Location> locations = service.calculateAllLocations(data);
+                observationData.publish(gson.toJson(locations));
             } catch (Exception ex) {
                 System.out.println(ex.toString());
             }
         }
     }
+
+    /**
+     * Creates Gson instance that serializes data that doesn't fit into JSONs specs.
+     *
+     * @return Gson object.
+     */
+    private static Gson createGson() {
+        GsonBuilder gb = new GsonBuilder();
+        gb.serializeSpecialFloatingPointValues();
+        gb.enableComplexMapKeySerialization();
+        gb.serializeNulls();
+        gb.setLenient();
+
+        return gb.create();
+    }
+
+    private static void addObservation(Observation observation) {
+        if (!beacons.containsKey(observation.getBeaconId())) {
+            int observationLifetime = 5000;
+            beacons.put(observation.getBeaconId(), new Beacon(observation.getBeaconId(), observationLifetime));
+        }
+
+        Beacon beacon = beacons.get(observation.getBeaconId());
+        List<Observation> observations = beacon.getObservations();
+
+        int maxMessages = 10000;
+        if (observations.size() >= maxMessages) {
+            observations.remove(0);
+        }
+
+        observation.setTimestamp(LocalDateTime.now());
+        observations.add(observation);
+        beacon.setObservations(observations);
+    }
+
 
     private static void printDistances(ILocationService service, List<Beacon> beacons) {
         beacons.forEach(x -> {
@@ -87,7 +164,7 @@ public class App {
                 if (!rasps.contains(observation.getRaspId())) {
                     rasps.add(observation.getRaspId());
                     distanceString += "\n" + observation.getRaspId() + ":\t" +
-                            service.getDistanceFromRssi(observation.getRssi(), x.getMinRSSI()) +
+                            service.getDistanceFromRssi(observation.getRssi(), x.getMeasuredPower()) +
                             "\t" + observation.getTimestamp();
                 }
             }
