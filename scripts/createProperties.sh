@@ -18,7 +18,7 @@ echo "observerConfigTopic=ohtu/test/observerConfig" >> $mqtt
 echo "observerConfigStatusTopic=ohtu/test/observerConfigStatus" >> $mqtt
 echo "debug=true" >> $mqtt
 
-echo "# rasps locations in format of x/y/z" > $rasp
+echo "#Rasps locations in format of x/y/z" > $rasp
 echo "rasp-1=0/0/0" >> $rasp
 echo "rasp-2=0/10000/3333" >> $rasp
 echo "rasp-3=10000/0/6666" >> $rasp
