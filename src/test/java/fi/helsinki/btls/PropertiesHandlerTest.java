@@ -169,7 +169,7 @@ public class PropertiesHandlerTest {
         handler.saveProperty("lel", "3th");
         handler.persistProperties();
 
-        checkFileSize(7 + 1);
+        checkFileSize(7 + 1 + 1);
     }
 
     @Test
@@ -193,7 +193,7 @@ public class PropertiesHandlerTest {
         handler.saveProperty("notWorking", "notWorking");
 
         handler.closePropertiesFile();
-        checkFileSize(2 + 1);
+        checkFileSize(2 + 1 + 1);
 
         assertEquals(0, handler.getAllProperties().size());
     }

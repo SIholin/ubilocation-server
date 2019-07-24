@@ -89,7 +89,7 @@ public class PropertiesHandler {
      */
     public void persistProperties() {
         try {
-            properties.store(new FileOutputStream(file), null);
+            properties.store(new FileOutputStream(file), "Rasps locations in format of x/y/z");
         } catch (Exception e) {
             throw new RuntimeException("Properties file doesn't exists!");
         }

@@ -25,10 +25,11 @@ dependencies {
     // This dependency is found on compile classpath of this component and consumers.
     implementation 'com.google.guava:guava:26.0-jre'
 
-    // Use JUnit test framework
+    // Use Junit test framework
     testImplementation 'junit:junit:4.12'
+    implementation 'com.google.code.gson:gson:2.8.5'
 
-    implementation 'com.github.ubikampus:ubi-Indoor-Positioning:v0.1.0'
+    implementation 'com.github.ubikampus:ubi-Indoor-Positioning:feature~mqttservice-SNAPSHOT'
 }
 
 // Define the main class for the application
