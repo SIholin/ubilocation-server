@@ -1,0 +1,16 @@
+FROM openjdk:11.0.3-stretch AS builder
+
+COPY gradle /app/gradle
+COPY gradlew /app/gradlew
+WORKDIR /app
+
+RUN ./gradlew
+
+COPY . /app
+RUN ./gradlew shadowJar
+
+FROM openjdk:11-jre-slim
+
+COPY --from=builder /app/build/libs/Bluetooth-Location-Server-all.jar /app/server.jar
+
+CMD ["java", "-jar", "/app/server.jar"]
