@@ -17,8 +17,12 @@ import fi.helsinki.ubipositioning.utils.IObserverService;
 import fi.helsinki.ubipositioning.utils.ObservationGenerator;
 import fi.helsinki.ubipositioning.utils.ObserverService;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class App {
     private static Map<String, Beacon> beacons;
@@ -75,7 +79,15 @@ public class App {
 
         IMqttService observerData = new MqttService(mqttUrl, config, configStatus);
         Map<String, String> keys = new PropertiesHandler("config/keys.properties").getAllProperties();
-        observerData.connectSigned(keys.get("configPublicKey"), s -> {
+
+        StringBuilder keyBuilder = new StringBuilder();
+        try (Stream<String> stream = Files.lines( Paths.get(keys.get("configPublicKey")))) {
+            stream.forEach(keyBuilder::append);
+        } catch (IOException e) {
+            System.out.println("file not found: " + e);
+        }
+
+        observerData.connectSigned(keyBuilder.toString(), s -> {
             try {
                 Observer[] obs = gson.fromJson(s, Observer[].class);
                 String message;
