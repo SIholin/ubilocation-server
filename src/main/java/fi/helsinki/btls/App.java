@@ -18,10 +18,7 @@ import fi.helsinki.ubipositioning.utils.ObservationGenerator;
 import fi.helsinki.ubipositioning.utils.ObserverService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class App {
     private static Map<String, Beacon> beacons;
@@ -77,17 +74,21 @@ public class App {
         String configStatus = handler.getProperty("observerConfigStatusTopic");
 
         IMqttService observerData = new MqttService(mqttUrl, config, configStatus);
-        observerData.connect(s -> {
+        Map<String, String> keys = new PropertiesHandler("config/keys.properties").getAllProperties();
+        observerData.connectSigned(keys.get("configPublicKey"), s -> {
             try {
-                Observer obs = gson.fromJson(s, Observer.class);
+                Observer[] obs = gson.fromJson(s, Observer[].class);
                 String message;
 
-                if (observerService.addObserver(obs)) {
+                if (observerService.addAllObservers(Arrays.asList(obs))) {
                     message = "success";
 
-                    double[] position = obs.getPosition();
-                    String pos = position[0] + regexForRasp + position[1] + regexForRasp + position[2];
-                    observerHandler.saveProperty(obs.getObserverId(), pos);
+                    for (Observer observer : obs) {
+                        double[] position = observer.getPosition();
+                        String pos = position[0] + regexForRasp + position[1] + regexForRasp + position[2];
+                        observerHandler.saveProperty(observer.getObserverId(), pos);
+                    }
+
                     observerHandler.persistProperties();
                 } else {
                     message = "error";
