@@ -18,10 +18,10 @@ This program is however still self-sufficient as it can operate no matter how ra
 Easiest way to get a development server running is to use docker-compose.
 Before running necessary properties files must be created. 
 
-To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/createProperties.sh) with command './scripts/createProperties.sh' and another [bash script](https://github.com/ubikampus/Bluetooth-Location-Server/blob/master/scripts/createSignConfig.sh) with command './scripts/createSignConfig.sh'
+To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/createProperties.sh) with command `./scripts/createProperties.sh` and another [bash script](https://github.com/ubikampus/Bluetooth-Location-Server/blob/master/scripts/createSignConfig.sh) with command `./scripts/createSignConfig.sh`
 to automatically create all the needed properties and give them a default value that can be used directly or changed if wanted. 
 
-Last you must create or copy the file and maybe rename the file that contains the public key. Because in default it is excepted to be inside 'config' folder as 'PublicKeyForObserverConfig.txt'.
+Last you must create or copy the file and maybe rename the file that contains the public key. Because in default it is excepted to be inside `config` folder as `PublicKeyForObserverConfig.txt`.
 
 Set up the development environment with `docker-compose up -d mqtt` and `docker-compose up btls`.
 You should now have both the location server and an mqtt server running.
@@ -44,7 +44,7 @@ So to sum it all up
 
 If using the default file path of the public key
 
-*  Create a file called 'PublicKeyForObserverConfig.txt' inside config-folder or copy and rename existing text file.
+*  Create a file called `PublicKeyForObserverConfig.txt` inside `config` folder or copy and rename existing text file.
 *  Make sure it contains valid public key.
 
 Otherwise
@@ -87,7 +87,7 @@ After that you can just build the docker image and start using it where ever you
 
 If using the default file path of the public key
 
-*  Create a file called 'PublicKeyForObserverConfig.txt' inside config-folder or copy and rename existing text file.
+*  Create a file called `PublicKeyForObserverConfig.txt` inside `config` folder or copy and rename existing text file.
 *  Make sure it contains valid public key.
 
 Otherwise
@@ -96,7 +96,7 @@ Otherwise
 *  Then change `configPublicKey` value to relative path of the file which contains the key and close the file
 *  Copy existing text file or create new one and make sure it contains valid public key.
 
-NOTE: text-file must be inside config-folder.
+NOTE: text-file must be inside `config` folder.
 
 Then
 
