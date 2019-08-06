@@ -15,27 +15,37 @@ This program is however still self-sufficient as it can operate no matter how ra
 
 ## Local Development
 
-### Docker
-
 Easiest way to get a development server running is to use docker-compose.
 Before running necessary properties files must be created. 
-To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/createProperties.sh) with command './scripts/createProperties.sh' 
-to automatically create all the needed properties and give them a default value that can be used directly or changed if wanted.
+
+To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/createProperties.sh) with command './scripts/createProperties.sh' and another [bash script](https://github.com/ubikampus/Bluetooth-Location-Server/blob/master/scripts/createSignConfig.sh) with command './scripts/createSignConfig.sh'
+to automatically create all the needed properties and give them a default value except for public key that can be used directly or changed if wanted. Public key in properties file `keys.properties` must be set first. It takes as value a relative path from projets roots perspective to the file that contains actual key. so for example if its in root as a txt-file then path would be `publickey.txt`.
+
 Set up the development environment with `docker-compose up -d mqtt` and `docker-compose up btls`.
 You should now have both the location server and an mqtt server running.
 The mqtt server has port 1883 exposed, so you can also connect to it from the outside.
 
 Src and properties files are shared to the container, so you don't have to rebuild the image when making changes. Just restart the server.
 
-If you just need the location server, set `mqttUrl` to the mqtt server's url in the properties files, and run `docker-compose up btls`.
+If you just need the location server, set `mqttUrl` to the mqtt server's url in the properties files, and run `docker-compose up btls`. 
 
-## Installation
+So to sum it all up
+
+### Installation
 
 *  `git clone https://github.com/ubikampus/ubi-Indoor-Positioning.git`
 *  `cd ubi-Indoor-Positioning`
 *  `./scripts/createProperties.sh`
+*  `./scripts/createSignConfig.sh`
 
-## Usage
+### Usage
+
+During first time using when reading signed observer config messages
+
+*  From project root open in editor `config/keys.properties`
+*  Then change `configPublicKey` value to relative path of the file which contains the key and close the file
+
+After that
 
 To use with localhost MQTT server
 
@@ -47,6 +57,30 @@ To use with external MQTT server
 *  From project root open in editor `config/mqttConfig.properties`
 *  Then change `mqttUrl` value to servers address and close the file
 *  In project root `docker-compose up btls`
+
+## Production
+
+
+
+### Locally
+
+To locally create production version of the server application then after getting project locally. 
+
+#### Installation
+
+*  `git clone https://github.com/ubikampus/ubi-Indoor-Positioning.git`
+*  `cd ubi-Indoor-Positioning`
+*  `./scripts/createProperties.sh`
+*  `./scripts/createSignConfig.sh`
+
+#### Usage
+
+*  From project root open in editor `config/keys.properties`
+*  Then change `configPublicKey` value to relative path of the file which contains the key and close the file
+*  From project root open in editor `config/mqttConfig.properties`
+*  Then change `mqttUrl` value to servers address and close the file
+
+*  `docker ???`
 
 ## License
 
