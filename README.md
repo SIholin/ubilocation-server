@@ -94,7 +94,7 @@ Otherwise
 *  Then change `configPublicKey` value to relative path of the file which contains the key and close the file
 *  Copy existing text file or create new one and make sure it contains valid public key.
 
-NOTE: text-file must be inside `config` folder.
+NOTE: Text-file must be inside `config` folder.
 
 Then
 
@@ -122,6 +122,8 @@ debug=true
 ```
 
 First row in the file indicates the address of the MQTT server which if locally hosted is generally mqtt. Otherwise it must be full url without starting protocol name so without "://" beginning. So for example "iot.ubikampus.net". Second and fourth indicates the topics in the MQTT bus which need to be listened for new messages. First of these tells where all the data BLE listeners have collected should be published and second where all the configuration changes should be published related to BLE listeners locations. third and fifth row instead are about the topics where calculated location data should be published and where to give response everytime BLE listeners configurations where attempted to changed. And last row indicates if debug mode should be true or false. If its true then program will use runtime generated observation data about fake people for location calculations. And if false then actual data from topic that is defined by second row.
+
+NOTE: All the topics above must be different so they can't be the same.
 
 ### rasps.properties
 
