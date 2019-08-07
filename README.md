@@ -143,7 +143,7 @@ This file contains only the information about the static BLE listeners. As comme
 configPublicKey=config/PublicKeyForObserverConfig.txt
 ```
 
-Property `configPublicKey` tells the relative path of text-file that contains public key and only the key for reading signed messages in MQTT bus. Signed reading from MQTT topic is default only active for configurating BLE listeners.
+Property `configPublicKey` tells the relative path of text-file that contains public key and only the key for reading signed messages in MQTT bus. The relative path is taken from the aspect of projects root but it must begin with `config/` if configurations are used to  create production version. Signed reading from MQTT topic is default only active for configurating BLE listeners.
 
 ## License
 
