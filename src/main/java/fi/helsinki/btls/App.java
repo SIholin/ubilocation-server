@@ -87,7 +87,7 @@ public class App {
             System.out.println("file not found: " + e);
         }
 
-        observerData.connectSigned(keyBuilder.toString(), s -> {
+        observerData.connect(s -> {
             try {
                 Observer[] obs = gson.fromJson(s, Observer[].class);
                 String message;
