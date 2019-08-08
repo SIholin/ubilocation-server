@@ -9,8 +9,8 @@ This program is however still self-sufficient as it can operate no matter how ra
 ## Table of Contents <a name="table-of-contents"/>
 
 *  [Local Development](#local-development)
-*  [Installation](#installation)
-*  [Usage](#usage)
+*  [Production](#production)
+*  [Configurations](#configurations)
 *  [License](#license)
 
 ## Local Development
@@ -72,9 +72,7 @@ To use with external MQTT server
 
 ### Locally
 
-To locally create production version of the server application then after getting project loaded with properties files all the needed properties values must be first checked and set if needed. 
-
-After that you can just build the docker image and start using it where ever you want.
+To locally create production version of the server application then after getting project loaded with properties files all the needed properties values must be first checked and set if needed. Then just build the docker image.
 
 #### Installation
 
@@ -96,7 +94,7 @@ Otherwise
 *  Then change `configPublicKey` value to relative path of the file which contains the key and close the file
 *  Copy existing text file or create new one and make sure it contains valid public key.
 
-NOTE: text-file must be inside `config` folder.
+NOTE: Text-file must be inside `config` folder.
 
 Then
 
@@ -107,6 +105,45 @@ And last
 
 *  `docker build -t ubikampus-positioning-server -f Dockerfile.prod .`
 *  `docker run -v $(pwd)/config:/config ubikampus-positioning-server:latest`
+
+## Configurations
+
+After properties files have been created by the two [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/)s then you will find a folder called `config` if not yet existed and from there three properties files with their default values.  
+
+### mqttConfig.properties
+
+```
+mqttUrl=mqtt
+subscribeTopic=ohtu/test/observations
+publishTopic=ohtu/test/locations
+observerConfigTopic=ohtu/test/observerConfig
+observerConfigStatusTopic=ohtu/test/observerConfigStatus
+debug=true
+```
+
+First row in the file indicates the address of the MQTT server which if locally hosted is generally mqtt. Otherwise it must be full url without starting protocol name so without "://" beginning. So for example "iot.ubikampus.net". Second and fourth indicates the topics in the MQTT bus which need to be listened for new messages. First of these tells where all the data BLE listeners have collected should be published and second where all the configuration changes should be published related to BLE listeners locations. third and fifth row instead are about the topics where calculated location data should be published and where to give response everytime BLE listeners configurations where attempted to changed. And last row indicates if debug mode should be true or false. If its true then program will use runtime generated observation data about fake people for location calculations. And if false then actual data from topic that is defined by second row.
+
+NOTE: All the topics above must be different so they can't be the same.
+
+### rasps.properties
+
+```
+#Rasps locations in format of x/y/z
+rasp-1=0/0/0
+rasp-2=0/10000/3333
+rasp-3=10000/0/6666
+rasp-4=10000/10000/10000
+```
+
+This file contains only the information about the static BLE listeners. As comment indicates the format of these configurations are following `(name of the BLE listener)=(the x-coordinate of listener)/(the y-coordinate of listener)/(the z-coordinate of listener)`. These configurations however unlike others can be also modified during runtime using MQTT bus. 
+
+### keys.properties
+
+```
+configPublicKey=config/PublicKeyForObserverConfig.txt
+```
+
+Property `configPublicKey` tells the relative path of text-file that contains public key and only the key for reading signed messages in MQTT bus. The relative path is taken from the aspect of projects root but it must begin with `config/` if configurations are used to  create production version. Signed reading from MQTT topic is default only active for configurating BLE listeners.
 
 ## License
 
