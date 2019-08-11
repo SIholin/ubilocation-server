@@ -12,11 +12,11 @@ import fi.helsinki.ubipositioning.datamodels.Observer;
 import fi.helsinki.ubipositioning.mqtt.IMqttService;
 import fi.helsinki.ubipositioning.mqtt.MqttService;
 import fi.helsinki.ubipositioning.trilateration.ILocationService;
-import fi.helsinki.ubipositioning.trilateration.LocationService3D;
+import fi.helsinki.ubipositioning.trilateration.LocationService;
+import fi.helsinki.ubipositioning.trilateration.RssiToMilliMeters;
 import fi.helsinki.ubipositioning.utils.IObserverService;
 import fi.helsinki.ubipositioning.utils.ObservationGenerator;
 import fi.helsinki.ubipositioning.utils.ObserverService;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -43,7 +43,7 @@ public class App {
             try {
                 Observation obs = gson.fromJson(s, Observation.class);
                 addObservation(obs);
-            } catch (Exception ex) {
+            } catch (Exception ignored) {
             }
         });
 
@@ -108,12 +108,14 @@ public class App {
 
                 observerData.publish(message);
             } catch (Exception ex) {
+                System.out.println(ex.getMessage());
             }
         });
 
         ObservationGenerator obsMock = new ObservationGenerator(12, 30, observerKeys);
-        ILocationService service = new LocationService3D(observerService);
-        service.setCalculateDistance(true);
+        ILocationService service = new LocationService(observerService,
+                new RssiToMilliMeters(2), new ResultAs3D());
+
         while (true) {
             try {
                 Thread.sleep(1000);
@@ -166,22 +168,8 @@ public class App {
         observations.add(observation);
         beacon.setObservations(observations);
     }
-
-
-    private static void printDistances(ILocationService service, List<Beacon> beacons) {
-        beacons.forEach(x -> {
-            String distanceString = x.getId();
-            List<String> rasps = new ArrayList<>();
-            for (int i = x.getObservations().size() - 1; i >= 0; i--) {
-                Observation observation = x.getObservations().get(i);
-                if (!rasps.contains(observation.getRaspId())) {
-                    rasps.add(observation.getRaspId());
-                    distanceString += "\n" + observation.getRaspId() + ":\t" +
-                            service.getDistanceFromRssi(observation.getRssi(), x.getMeasuredPower()) +
-                            "\t" + observation.getTimestamp();
-                }
-            }
-            System.out.println(distanceString);
-        });
-    }
 }
+
+/*
+*
+* */
