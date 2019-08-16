@@ -11,6 +11,7 @@ This program is however still self-sufficient as it can operate no matter how ra
 *  [Local Development](#local-development)
 *  [Production](#production)
 *  [Configurations](#configurations)
+*  [Data specs](#data-specs)
 *  [License](#license)
 
 ## Local Development
@@ -18,7 +19,7 @@ This program is however still self-sufficient as it can operate no matter how ra
 Easiest way to get a development server running is to use docker-compose.
 Before running necessary properties files must be created. 
 
-To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/createProperties.sh) with command `./scripts/createProperties.sh` and another [bash script](https://github.com/ubikampus/Bluetooth-Location-Server/blob/master/scripts/createSignConfig.sh) with command `./scripts/createSignConfig.sh`
+To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/masterScript.sh) with command `./scripts/masterScript.sh` 
 to automatically create all the needed properties and give them a default value that can be used directly or changed if wanted. 
 
 Last you must create or copy the file and maybe rename the file that contains the public key. Because in default it is excepted to be inside `config` folder as `PublicKeyForObserverConfig.txt`.
@@ -37,8 +38,7 @@ So to sum it all up
 
 *  `git clone https://github.com/ubikampus/ubi-Indoor-Positioning.git`
 *  `cd ubi-Indoor-Positioning`
-*  `./scripts/createProperties.sh`
-*  `./scripts/createSignConfig.sh`
+*  `./scripts/masterScript.sh`
 
 ### Usage
 
@@ -78,8 +78,7 @@ To locally create production version of the server application then after gettin
 
 *  `git clone https://github.com/ubikampus/ubi-Indoor-Positioning.git`
 *  `cd ubi-Indoor-Positioning`
-*  `./scripts/createProperties.sh`
-*  `./scripts/createSignConfig.sh`
+*  `./scripts/masterScript.sh`
 
 #### Usage
 
@@ -108,7 +107,7 @@ And last
 
 ## Configurations
 
-After properties files have been created by the two [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/)s then you will find a folder called `config` if not yet existed and from there three properties files with their default values.  
+After properties files have been created by the three [bash scripts](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/) which master script called then you will find a folder called `config` if not yet existed and from there four properties files with their default values.  
 
 ### mqttConfig.properties
 
@@ -144,6 +143,70 @@ configPublicKey=config/PublicKeyForObserverConfig.txt
 ```
 
 Property `configPublicKey` tells the relative path of text-file that contains public key and only the key for reading signed messages in MQTT bus. The relative path is taken from the aspect of projects root but it must begin with `config/` if configurations are used to  create production version. Signed reading from MQTT topic is default only active for configurating BLE listeners.
+
+### appConfig.properties
+
+```
+threeDimensional=True
+```
+
+Property `threeDimensional` tells if applications should create three dimensional data or not. If false it will by default create two dimensional data.
+
+## Data Specs
+
+### Raw signal strength data 
+
+```
+{
+  "observerId": string,
+  "beaconId": string,
+  "rssi": decimal number
+}
+```
+
+### Observer configuration data
+
+Json array of 
+
+```
+{
+  "observerId": string,
+  "position": json array of decimal numbers
+}
+```
+
+### Location data
+
+Either json array of 
+
+```
+{
+  "z": decimal number,
+  "zr": decimal number,
+  "beaconId": string,
+  "x": decimal number,
+  "y": decimal number,
+  "xr": decimal number,
+  "yr": decimal number
+}
+```
+
+or 
+
+```
+{
+  "alignment": decimal number,
+  "beaconId": string,
+  "x": decimal number,
+  "y": decimal number,
+  "xr": decimal number,
+  "yr": decimal number
+}
+```
+
+### Status response for observer configuration
+
+Either `success` or `error`.
 
 ## License
 

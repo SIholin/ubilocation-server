@@ -12,6 +12,7 @@ import fi.helsinki.ubipositioning.trilateration.ILocationService;
 import fi.helsinki.ubipositioning.trilateration.LocationService;
 import fi.helsinki.ubipositioning.trilateration.RssiToMilliMeters;
 import fi.helsinki.ubipositioning.utils.IObserverService;
+import fi.helsinki.ubipositioning.utils.IResultConverter;
 import fi.helsinki.ubipositioning.utils.ObservationGenerator;
 import fi.helsinki.ubipositioning.utils.ObserverService;
 import java.io.IOException;
@@ -28,12 +29,12 @@ public class App {
         Gson gson = createGson();
         beacons = new HashMap<>();
 
-        PropertiesHandler handler = new PropertiesHandler("config/mqttConfig.properties");
+        PropertiesHandler mqttConfig = new PropertiesHandler("config/mqttConfig.properties");
 
-        String subscribeTopic = handler.getProperty("subscribeTopic");
-        String publishTopic = handler.getProperty("publishTopic");
-        String mqttUrl = handler.getProperty("mqttUrl");
-        boolean debug = Boolean.parseBoolean(handler.getProperty("debug"));
+        String subscribeTopic = mqttConfig.getProperty("subscribeTopic");
+        String publishTopic = mqttConfig.getProperty("publishTopic");
+        String mqttUrl = mqttConfig.getProperty("mqttUrl");
+        boolean debug = Boolean.parseBoolean(mqttConfig.getProperty("debug"));
 
         IMqttService observationData = new MqttService(mqttUrl, subscribeTopic, publishTopic);
         observationData.connect(s -> {
@@ -45,15 +46,17 @@ public class App {
             }
         });
 
-        int positionsDimension = 3;
+        PropertiesHandler appConfig = new PropertiesHandler("config/appConfig.properties");
+        int positionsDimension = Boolean.parseBoolean(appConfig.getProperty("threeDimensional")) ? 3 : 2;
+
         IObserverService observerService = new ObserverService(positionsDimension);
-        PropertiesHandler observerHandler = new PropertiesHandler("config/rasps.properties");
-        Map<String, String> allProperties = observerHandler.getAllProperties();
+        PropertiesHandler observerConfig = new PropertiesHandler("config/rasps.properties");
+
         List<Observer> all = new ArrayList<>();
         List<String> observerKeys = new ArrayList<>();
 
         String regexForRasp = "/";
-        allProperties.forEach((key, value) -> {
+        observerConfig.getAllProperties().forEach((key, value) -> {
             String[] rasp = value.split(regexForRasp);
             double[] temp = new double[positionsDimension];
 
@@ -72,14 +75,14 @@ public class App {
             return;
         }
 
-        String config = handler.getProperty("observerConfigTopic");
-        String configStatus = handler.getProperty("observerConfigStatusTopic");
+        String config = mqttConfig.getProperty("observerConfigTopic");
+        String configStatus = mqttConfig.getProperty("observerConfigStatusTopic");
 
         IMqttService observerData = new MqttService(mqttUrl, config, configStatus);
-        Map<String, String> keys = new PropertiesHandler("config/keys.properties").getAllProperties();
+        Map<String, String> keysConfig = new PropertiesHandler("config/keys.properties").getAllProperties();
 
         StringBuilder keyBuilder = new StringBuilder();
-        try (Stream<String> stream = Files.lines( Paths.get(keys.get("configPublicKey")))) {
+        try (Stream<String> stream = Files.lines( Paths.get(keysConfig.get("configPublicKey")))) {
             stream.forEach(keyBuilder::append);
         } catch (IOException e) {
             System.out.println("file not found: " + e.toString());
@@ -96,10 +99,10 @@ public class App {
                     for (Observer observer : obs) {
                         double[] position = observer.getPosition();
                         String pos = position[0] + regexForRasp + position[1] + regexForRasp + position[2];
-                        observerHandler.saveProperty(observer.getObserverId(), pos);
+                        observerConfig.saveProperty(observer.getObserverId(), pos);
                     }
 
-                    observerHandler.persistProperties();
+                    observerConfig.persistProperties();
                 } else {
                     message = "error";
                 }
@@ -110,9 +113,11 @@ public class App {
             }
         });
 
+        IResultConverter resultAs = positionsDimension == 3 ? new ResultAs3D() : new ResultAs2D();
+
         ObservationGenerator obsMock = new ObservationGenerator(12, 30, observerKeys);
         ILocationService service = new LocationService(observerService,
-                new RssiToMilliMeters(2), new ResultAs3D());
+                new RssiToMilliMeters(2), resultAs);
 
         while (true) {
             try {
@@ -128,7 +133,8 @@ public class App {
                 List<Location> locations = new ArrayList<>();
                 for (Beacon b : data) {
                     try {
-                        locations.add(service.calculateLocation(b));
+                        Location location = service.calculateLocation(b);
+                        locations.add(location);
                     } catch (Exception ex) {
                         System.out.println(ex.toString());
                     }
