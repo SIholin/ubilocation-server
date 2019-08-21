@@ -16,24 +16,6 @@ This program is however still self-sufficient as it can operate no matter how ra
 
 ## Local Development
 
-Easiest way to get a development server running is to use docker-compose.
-Before running necessary properties files must be created. 
-
-To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/masterScript.sh) with command `./scripts/masterScript.sh` 
-to automatically create all the needed properties and give them a default value that can be used directly or changed if wanted. 
-
-Last you must create or copy the file and maybe rename the file that contains the public key. Because in default it is excepted to be inside `config` folder as `PublicKeyForObserverConfig.txt`.
-
-Set up the development environment with `docker-compose up -d mqtt` and `docker-compose up btls`.
-You should now have both the location server and an mqtt server running.
-The mqtt server has port 1883 exposed, so you can also connect to it from the outside.
-
-Src and properties files are shared to the container, so you don't have to rebuild the image when making changes. Just restart the server.
-
-If you just need the location server, set `mqttUrl` to the mqtt server's url in the properties files, and run `docker-compose up btls`. 
-
-So to sum it all up
-
 ### Installation
 
 *  `git clone https://github.com/ubikampus/ubi-Indoor-Positioning.git`
@@ -42,16 +24,9 @@ So to sum it all up
 
 ### Usage
 
-If using the default file path of the public key
+### Using signing in 
 
-*  Create a file called `PublicKeyForObserverConfig.txt` inside `config` folder or copy and rename existing text file.
-*  Make sure it contains valid public key.
-
-Otherwise
-
-*  From project root open in editor `config/keys.properties`
-*  Then change `configPublicKey` value to relative path of the file which contains the key and close the file
-*  Copy existing text file or create new one and make sure it contains valid public key.
+*  Check [configurations](#configurations) are correct from `config` folder.
 
 After that
 
@@ -72,8 +47,6 @@ To use with external MQTT server
 
 ### Locally
 
-To locally create production version of the server application then after getting project loaded with properties files all the needed properties values must be first checked and set if needed. Then just build the docker image.
-
 #### Installation
 
 *  `git clone https://github.com/ubikampus/ubi-Indoor-Positioning.git`
@@ -82,18 +55,7 @@ To locally create production version of the server application then after gettin
 
 #### Usage
 
-If using the default file path of the public key
-
-*  Create a file called `PublicKeyForObserverConfig.txt` inside `config` folder or copy and rename existing text file.
-*  Make sure it contains valid public key.
-
-Otherwise
-
-*  From project root open in editor `config/keys.properties`
-*  Then change `configPublicKey` value to relative path of the file which contains the key and close the file
-*  Copy existing text file or create new one and make sure it contains valid public key.
-
-NOTE: Text-file must be inside `config` folder.
+*  Check [configurations](#configurations) are correct from `config` folder.
 
 Then
 
@@ -139,18 +101,32 @@ This file contains only the information about the static BLE listeners. As comme
 ### keys.properties
 
 ```
-configPublicKey=config/PublicKeyForObserverConfig.txt
+signingConfigPublicKey=config/PublicKeyForObserverConfig.txt
+encryptionPrivateKey=config/PrivateKeyForEncryption.txt
+encryptionPublicKey=config/PublicKeyForEncryption.txt
 ```
 
-Property `configPublicKey` tells the relative path of text-file that contains public key and only the key for reading signed messages in MQTT bus. The relative path is taken from the aspect of projects root but it must begin with `config/` if configurations are used to  create production version. Signed reading from MQTT topic is default only active for configurating BLE listeners.
+Property `signingConfigPublicKey` tells the relative path of text-file that contains public key and only the key for reading signed messages in MQTT bus. The relative path is taken from the aspect of projects root but it must begin with `config/` if configurations are used to  create production version. Signed reading from MQTT topic to configure BLE listeners is not active by default.
+
+Property `encryptionPrivateKey` tells the relative path of text-file that contains private key and only the key for decrypting messages in MQTT bus that contain observation data. The relative path is taken from the aspect of projects root but it must begin with `config/` if configurations are used to  create production version. Decrypting messages that are gotten from MQTT bus is not active by default.
+
+Property `encryptionPublicKey` tells the relative path of text-file that contains public key and only the key for encrypting messages that are send to MQTT bus. The relative path is taken from the aspect of projects root but it must begin with `config/` if configurations are used to  create production version. Encrypting published messages is not active by default.
 
 ### appConfig.properties
 
 ```
 threeDimensional=True
+enableConfigSigning=False
+enableDataEncryption=False
 ```
 
 Property `threeDimensional` tells if applications should create three dimensional data or not. If false it will by default create two dimensional data.
+
+Properties `enableConfigSigning`  and `enableDataEncryption` indicate if signing and/or encryption should be used or not respectively. 
+
+If signing is enabled then application only registers the bluetooth listener (observer) configuration messages that can be verified with `signingConfigPublicKey` property.
+
+If encryption is enabled then application uses `encryptionPublicKey` property to encrypt published messages that contain location data and `encryptionPrivateKey` property to decrypt observaton data that is listened from subscribed topic.
 
 ## Data Specs
 

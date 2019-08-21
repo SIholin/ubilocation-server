@@ -6,6 +6,7 @@ import fi.helsinki.ubipositioning.datamodels.Beacon;
 import fi.helsinki.ubipositioning.datamodels.Location;
 import fi.helsinki.ubipositioning.datamodels.Observation;
 import fi.helsinki.ubipositioning.datamodels.Observer;
+import fi.helsinki.ubipositioning.mqtt.IMessageListener;
 import fi.helsinki.ubipositioning.mqtt.IMqttService;
 import fi.helsinki.ubipositioning.mqtt.MqttService;
 import fi.helsinki.ubipositioning.trilateration.ILocationService;
@@ -31,23 +32,41 @@ public class App {
 
         PropertiesHandler mqttConfig = new PropertiesHandler("config/mqttConfig.properties");
 
+        PropertiesHandler appConfig = new PropertiesHandler("config/appConfig.properties");
+        int positionsDimension = Boolean.parseBoolean(appConfig.getProperty("threeDimensional")) ? 3 : 2;
+
+        Map<String, String> keysConfig = new PropertiesHandler("config/keys.properties").getAllProperties();
+
         String subscribeTopic = mqttConfig.getProperty("subscribeTopic");
         String publishTopic = mqttConfig.getProperty("publishTopic");
         String mqttUrl = mqttConfig.getProperty("mqttUrl");
         boolean debug = Boolean.parseBoolean(mqttConfig.getProperty("debug"));
 
         IMqttService observationData = new MqttService(mqttUrl, subscribeTopic, publishTopic);
-        observationData.connect(s -> {
-            try {
-                Observation obs = gson.fromJson(s, Observation.class);
-                addObservation(obs);
-            } catch (Exception ex) {
-                System.out.println(ex.toString());
-            }
-        });
 
-        PropertiesHandler appConfig = new PropertiesHandler("config/appConfig.properties");
-        int positionsDimension = Boolean.parseBoolean(appConfig.getProperty("threeDimensional")) ? 3 : 2;
+        boolean enableDataEncryption = Boolean.parseBoolean(appConfig.getProperty("enableDataEncryption"));
+        if (enableDataEncryption) {
+            String keypath = keysConfig.get("encryptionPrivateKey");
+            String resultKey = getKeyFromFile(keypath);
+
+            observationData.connectEncrypted(resultKey, s -> {
+                try {
+                    Observation obs = gson.fromJson(s, Observation.class);
+                    addObservation(obs);
+                } catch (Exception ex) {
+                    System.out.println(ex.toString());
+                }
+            });
+        } else {
+            observationData.connect(s -> {
+                try {
+                    Observation obs = gson.fromJson(s, Observation.class);
+                    addObservation(obs);
+                } catch (Exception ex) {
+                    System.out.println(ex.toString());
+                }
+            });
+        }
 
         IObserverService observerService = new ObserverService(positionsDimension);
         PropertiesHandler observerConfig = new PropertiesHandler("config/rasps.properties");
@@ -79,45 +98,73 @@ public class App {
         String configStatus = mqttConfig.getProperty("observerConfigStatusTopic");
 
         IMqttService observerData = new MqttService(mqttUrl, config, configStatus);
-        Map<String, String> keysConfig = new PropertiesHandler("config/keys.properties").getAllProperties();
 
-        StringBuilder keyBuilder = new StringBuilder();
-        try (Stream<String> stream = Files.lines( Paths.get(keysConfig.get("configPublicKey")))) {
-            stream.forEach(keyBuilder::append);
-        } catch (IOException e) {
-            System.out.println("file not found: " + e.toString());
-        }
+        if (Boolean.parseBoolean(appConfig.getProperty("enableConfigSigning"))) {
+            String keypath = keysConfig.get("signingConfigPublicKey");
+            String resultKey = getKeyFromFile(keypath);
 
-        observerData.connect(s -> {
-            try {
-                Observer[] obs = gson.fromJson(s, Observer[].class);
-                String message;
+            observerData.connectSigned(resultKey, s -> {
+                try {
+                    Observer[] obs = gson.fromJson(s, Observer[].class);
+                    String message;
 
-                if (observerService.addAllObservers(Arrays.asList(obs))) {
-                    message = "success";
+                    if (observerService.addAllObservers(Arrays.asList(obs))) {
+                        message = "success";
 
-                    for (Observer observer : obs) {
-                        double[] position = observer.getPosition();
-                        String pos = position[0] + regexForRasp + position[1] + regexForRasp + position[2];
-                        observerConfig.saveProperty(observer.getObserverId(), pos);
+                        for (Observer observer : obs) {
+                            double[] position = observer.getPosition();
+                            String pos = position[0] + regexForRasp + position[1] + regexForRasp + position[2];
+                            observerConfig.saveProperty(observer.getObserverId(), pos);
+                        }
+
+                        observerConfig.persistProperties();
+                    } else {
+                        message = "error";
                     }
 
-                    observerConfig.persistProperties();
-                } else {
-                    message = "error";
+                    observerData.publish(message);
+                } catch (Exception ex) {
+                    System.out.println(ex.toString());
                 }
+            });
+        } else {
+            observerData.connect(s -> {
+                try {
+                    Observer[] obs = gson.fromJson(s, Observer[].class);
+                    String message;
 
-                observerData.publish(message);
-            } catch (Exception ex) {
-                System.out.println(ex.toString());
-            }
-        });
+                    if (observerService.addAllObservers(Arrays.asList(obs))) {
+                        message = "success";
+
+                        for (Observer observer : obs) {
+                            double[] position = observer.getPosition();
+                            String pos = position[0] + regexForRasp + position[1] + regexForRasp + position[2];
+                            observerConfig.saveProperty(observer.getObserverId(), pos);
+                        }
+
+                        observerConfig.persistProperties();
+                    } else {
+                        message = "error";
+                    }
+
+                    observerData.publish(message);
+                } catch (Exception ex) {
+                    System.out.println(ex.toString());
+                }
+            });
+        }
 
         IResultConverter resultAs = positionsDimension == 3 ? new ResultAs3D() : new ResultAs2D();
 
         ObservationGenerator obsMock = new ObservationGenerator(12, 30, observerKeys);
         ILocationService service = new LocationService(observerService,
                 new RssiToMilliMeters(2), resultAs);
+
+        String publicKeyEncrypt = "";
+        if (enableDataEncryption) {
+            String keypath = keysConfig.get("encryptionPublicKey");
+            publicKeyEncrypt = getKeyFromFile(keypath);
+        }
 
         while (true) {
             try {
@@ -140,11 +187,30 @@ public class App {
                     }
                 }
 
-                observationData.publish(gson.toJson(locations));
+                if (enableDataEncryption) {
+                    observationData.publishEncrypted(gson.toJson(locations), publicKeyEncrypt);
+                } else {
+                    observationData.publish(gson.toJson(locations));
+                }
             } catch (Exception ex) {
                 System.out.println(ex.toString());
             }
         }
+    }
+
+    private static String getKeyFromFile(String keypath) {
+        StringBuilder keyBuilder = new StringBuilder();
+
+        try (Stream<String> stream = Files.lines(Paths.get(keypath))) {
+            stream.forEach(str -> {
+                keyBuilder.append(str);
+                keyBuilder.append("\n");
+            });
+        } catch (IOException e) {
+            System.out.println("file not found: " + e.toString());
+        }
+
+        return keyBuilder.toString();
     }
 
     /**
