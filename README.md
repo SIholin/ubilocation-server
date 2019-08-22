@@ -4,7 +4,7 @@
 
 Bluetooth Location Server is part of a larger project which aim is to build comprehensive implementation of indoor positioning system for ubikampus. Systems main repository can be found [here](https://github.com/ubikampus/ubi-Indoor-Positioning).
 
-This program is however still self-sufficient as it can operate no matter how raw data is been created/collected and how the gotten information is used. It's only functionality is to collect signal strength data from MQTT bus topic and after using it to calculate location of BLE devices to publish that information into another MQTT bus topic. Server also allows controlling MQTT bus URL and topics info through properties file and BLE listeners static locations through both properties file and MQTT bus topic. That can be also configurated from properties file. 
+This program is however still self-sufficient as it can operate no matter how raw data is been created/collected and how the gotten information is used. It's only functionality is to collect signal strength data from MQTT bus topic and after using it to calculate location of BLE devices to publish that information into another MQTT bus topic. Server also allows controlling MQTT bus URL and topics info through properties file and BLE listeners static locations through both properties file and MQTT bus topic. That can be also configurated from properties file.
 
 ## Table of Contents <a name="table-of-contents"/>
 
@@ -17,10 +17,10 @@ This program is however still self-sufficient as it can operate no matter how ra
 ## Local Development
 
 Easiest way to get a development server running is to use docker-compose.
-Before running necessary properties files must be created. 
+Before running necessary properties files must be created.
 
-To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/masterScript.sh) with command `./scripts/masterScript.sh` 
-to automatically create all the needed properties and give them a default value that can be used directly or changed if wanted. 
+To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/masterScript.sh) with command `./scripts/masterScript.sh`
+to automatically create all the needed properties and give them a default value that can be used directly or changed if wanted.
 
 Last you must create or copy the file and maybe rename the file that contains the public key. Because in default it is excepted to be inside `config` folder as `PublicKeyForObserverConfig.txt`.
 
@@ -30,7 +30,7 @@ The mqtt server has port 1883 exposed, so you can also connect to it from the ou
 
 Src and properties files are shared to the container, so you don't have to rebuild the image when making changes. Just restart the server.
 
-If you just need the location server, set `mqttUrl` to the mqtt server's url in the properties files, and run `docker-compose up btls`. 
+If you just need the location server, set `mqttUrl` to the mqtt server's url in the properties files, and run `docker-compose up btls`.
 
 So to sum it all up
 
@@ -102,12 +102,14 @@ Then
 
 And last
 
-*  `docker build -t ubikampus-positioning-server -f Dockerfile.prod .`
-*  `docker run -v $(pwd)/config:/config ubikampus-positioning-server:latest`
+*  `docker-compose -f docker-compose.prod.yml up -d`
+
+By default, journald is used for storing logs. For example all logs can be
+viewed with `sudo journalctl CONTAINER_NAME=bluetooth-location-server`
 
 ## Configurations
 
-After properties files have been created by the three [bash scripts](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/) which master script called then you will find a folder called `config` if not yet existed and from there four properties files with their default values.  
+After properties files have been created by the three [bash scripts](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/) which master script called then you will find a folder called `config` if not yet existed and from there four properties files with their default values.
 
 ### mqttConfig.properties
 
@@ -134,7 +136,7 @@ rasp-3=10000/0/6666
 rasp-4=10000/10000/10000
 ```
 
-This file contains only the information about the static BLE listeners. As comment indicates the format of these configurations are following `(name of the BLE listener)=(the x-coordinate of listener)/(the y-coordinate of listener)/(the z-coordinate of listener)`. These configurations however unlike others can be also modified during runtime using MQTT bus. 
+This file contains only the information about the static BLE listeners. As comment indicates the format of these configurations are following `(name of the BLE listener)=(the x-coordinate of listener)/(the y-coordinate of listener)/(the z-coordinate of listener)`. These configurations however unlike others can be also modified during runtime using MQTT bus.
 
 ### keys.properties
 
@@ -154,7 +156,7 @@ Property `threeDimensional` tells if applications should create three dimensiona
 
 ## Data Specs
 
-### Raw signal strength data 
+### Raw signal strength data
 
 ```
 {
@@ -166,7 +168,7 @@ Property `threeDimensional` tells if applications should create three dimensiona
 
 ### Observer configuration data
 
-Json array of 
+Json array of
 
 ```
 {
@@ -177,7 +179,7 @@ Json array of
 
 ### Location data
 
-Either json array of 
+Either json array of
 
 ```
 {
@@ -191,7 +193,7 @@ Either json array of
 }
 ```
 
-or 
+or
 
 ```
 {
@@ -211,5 +213,3 @@ Either `success` or `error`.
 ## License
 
 Code is under the [MIT License](https://github.com/ubikampus/Bluetooth-Location-Server/blob/master/LICENSE)
-
-
