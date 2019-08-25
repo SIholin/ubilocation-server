@@ -6,7 +6,6 @@ import fi.helsinki.ubipositioning.datamodels.Beacon;
 import fi.helsinki.ubipositioning.datamodels.Location;
 import fi.helsinki.ubipositioning.datamodels.Observation;
 import fi.helsinki.ubipositioning.datamodels.Observer;
-import fi.helsinki.ubipositioning.mqtt.IMessageListener;
 import fi.helsinki.ubipositioning.mqtt.IMqttService;
 import fi.helsinki.ubipositioning.mqtt.MqttService;
 import fi.helsinki.ubipositioning.trilateration.ILocationService;
@@ -31,10 +30,9 @@ public class App {
         beacons = new HashMap<>();
 
         PropertiesHandler mqttConfig = new PropertiesHandler("config/mqttConfig.properties");
-
         PropertiesHandler appConfig = new PropertiesHandler("config/appConfig.properties");
-        int positionsDimension = Boolean.parseBoolean(appConfig.getProperty("threeDimensional")) ? 3 : 2;
 
+        int positionsDimension = Boolean.parseBoolean(appConfig.getProperty("threeDimensional")) ? 3 : 2;
         Map<String, String> keysConfig = new PropertiesHandler("config/keys.properties").getAllProperties();
 
         String subscribeTopic = mqttConfig.getProperty("subscribeTopic");
@@ -74,9 +72,9 @@ public class App {
         List<Observer> all = new ArrayList<>();
         List<String> observerKeys = new ArrayList<>();
 
-        String regexForRasp = "/";
+        String regexForObserverLoc = "/";
         observerConfig.getAllProperties().forEach((key, value) -> {
-            String[] rasp = value.split(regexForRasp);
+            String[] rasp = value.split(regexForObserverLoc);
             double[] temp = new double[positionsDimension];
 
             for (int i = 0; i < positionsDimension; i++) {
@@ -113,7 +111,7 @@ public class App {
 
                         for (Observer observer : obs) {
                             double[] position = observer.getPosition();
-                            String pos = position[0] + regexForRasp + position[1] + regexForRasp + position[2];
+                            String pos = position[0] + regexForObserverLoc + position[1] + regexForObserverLoc + position[2];
                             observerConfig.saveProperty(observer.getObserverId(), pos);
                         }
 
@@ -138,7 +136,7 @@ public class App {
 
                         for (Observer observer : obs) {
                             double[] position = observer.getPosition();
-                            String pos = position[0] + regexForRasp + position[1] + regexForRasp + position[2];
+                            String pos = position[0] + regexForObserverLoc + position[1] + regexForObserverLoc + position[2];
                             observerConfig.saveProperty(observer.getObserverId(), pos);
                         }
 
@@ -157,8 +155,7 @@ public class App {
         IResultConverter resultAs = positionsDimension == 3 ? new ResultAs3D() : new ResultAs2D();
 
         ObservationGenerator obsMock = new ObservationGenerator(12, 30, observerKeys);
-        ILocationService service = new LocationService(observerService,
-                new RssiToMilliMeters(2), resultAs);
+        ILocationService service = new LocationService(observerService, new RssiToMilliMeters(2), resultAs);
 
         String publicKeyEncrypt = "";
         if (enableDataEncryption) {
