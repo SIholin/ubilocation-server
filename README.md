@@ -118,15 +118,16 @@ Property `encryptionPublicKey` tells the relative path of text-file that contain
 threeDimensional=True
 enableConfigSigning=False
 enableDataEncryption=False
+enableDataDecryption=False
 ```
 
 Property `threeDimensional` tells if applications should create three dimensional data or not. If false it will by default create two dimensional data.
 
-Properties `enableConfigSigning`  and `enableDataEncryption` indicate if signing and/or encryption should be used or not respectively. 
+Properties `enableConfigSigning`, `enableDataDecryption`  and `enableDataEncryption` indicate if signing, decryption and/or encryption should be used or not respectively. 
 
 If signing is enabled then application only registers the bluetooth listener (observer) configuration messages that can be verified with `signingConfigPublicKey` property.
 
-If encryption is enabled then application uses `encryptionPublicKey` property to encrypt published messages that contain location data and `encryptionPrivateKey` property to decrypt observaton data that is listened from subscribed topic.
+If encryption is enabled then application uses `encryptionPublicKey` property to encrypt published messages that contain location data and if decryption is enabled then it uses `encryptionPrivateKey` property to decrypt observaton data that is listened from subscribed topic.
 
 ## Data Specs
 

@@ -43,7 +43,8 @@ public class App {
         IMqttService observationData = new MqttService(mqttUrl, subscribeTopic, publishTopic);
 
         boolean enableDataEncryption = Boolean.parseBoolean(appConfig.getProperty("enableDataEncryption"));
-        if (enableDataEncryption) {
+        boolean enableDataDecryption = Boolean.parseBoolean(appConfig.getProperty("enableDataDecryption"));
+        if (enableDataDecryption) {
             String keypath = keysConfig.get("encryptionPrivateKey");
             String resultKey = getKeyFromFile(keypath);
 
