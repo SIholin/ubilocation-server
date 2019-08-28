@@ -11,6 +11,6 @@ RUN ./gradlew shadowJar
 
 FROM openjdk:11-jre-slim
 
-COPY --from=builder /app/build/libs/Bluetooth-Location-Server-all.jar /app/server.jar
+COPY --from=builder /app/build/libs/ubilocation-server-all.jar /app/server.jar
 
 CMD ["java", "-jar", "/app/server.jar"]

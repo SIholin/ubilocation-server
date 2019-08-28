@@ -1,4 +1,4 @@
-# Bluetooth Location Server
+# Ubilocation server
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
@@ -19,7 +19,7 @@ This program is however still self-sufficient as it can operate no matter how ra
 Easiest way to get a development server running is to use docker-compose.
 Before running necessary properties files must be created.
 
-To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/masterScript.sh) with command `./scripts/masterScript.sh`
+To achieve this you can use from projects root a [bash script](https://github.com/ubikampus/ubilocation-server/blob/master/scripts/masterScript.sh) with command `./scripts/masterScript.sh`
 to automatically create all the needed properties and give them a default value that can be used directly or changed if wanted.
 
 Last you must create or copy the file and maybe rename the file that contains the public key. Because in default it is excepted to be inside `config` folder as `PublicKeyForObserverConfig.txt`.
@@ -105,11 +105,11 @@ And last
 *  `docker-compose -f docker-compose.prod.yml up -d`
 
 By default, journald is used for storing logs. For example all logs can be
-viewed with `sudo journalctl CONTAINER_NAME=bluetooth-location-server`
+viewed with `sudo journalctl CONTAINER_NAME=ubilocation-server`
 
 ## Configurations
 
-After properties files have been created by the three [bash scripts](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/) which master script called then you will find a folder called `config` if not yet existed and from there four properties files with their default values.
+After properties files have been created by the three [bash scripts](https://github.com/ubikampus/ubilocation-server/blob/master/scripts/) which master script called then you will find a folder called `config` if not yet existed and from there four properties files with their default values.
 
 ### mqttConfig.properties
 
@@ -212,4 +212,4 @@ Either `success` or `error`.
 
 ## License
 
-Code is under the [MIT License](https://github.com/ubikampus/Bluetooth-Location-Server/blob/master/LICENSE)
+Code is under the [MIT License](https://github.com/ubikampus/ubilocation-server/blob/master/LICENSE)
