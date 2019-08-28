@@ -11,5 +11,8 @@ elif [[ ! -d $dir ]]; then
 fi
 
 echo "threeDimensional=True" > $appConfig
+echo "enableConfigSigning=False" >> $appConfig
+echo "enableDataEncryption=False" >> $appConfig
+echo "enableDataDecryption=False" >> $appConfig
 
 cat $appConfig
