@@ -1,8 +1,8 @@
-# Bluetooth Location Server
+# Ubilocation server
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-Bluetooth Location Server is part of a larger project which aim is to build comprehensive implementation of indoor positioning system for ubikampus. Systems main repository can be found [here](https://github.com/ubikampus/ubi-Indoor-Positioning).
+Ubilocation server is part of a larger project which aim is to build comprehensive implementation of indoor positioning system for ubikampus. Systems main repository can be found [here](https://github.com/ubikampus/ubilocation-server).
 
 This program is however still self-sufficient as it can operate no matter how raw data is been created/collected and how the gotten information is used. It's only functionality is to collect signal strength data from MQTT bus topic and after using it to calculate location of BLE devices to publish that information into another MQTT bus topic. Server also allows controlling MQTT bus URL and topics info through properties file and BLE listeners static locations through both properties file and MQTT bus topic. That can be also configurated from properties file.
 
@@ -18,8 +18,8 @@ This program is however still self-sufficient as it can operate no matter how ra
 
 ### Installation
 
-*  `git clone https://github.com/ubikampus/ubi-Indoor-Positioning.git`
-*  `cd ubi-Indoor-Positioning`
+*  `git clone https://github.com/ubikampus/ubilocation-server.git`
+*  `cd ubilocation-server`
 *  `./scripts/masterScript.sh`
 
 ### Usage
@@ -47,8 +47,8 @@ To use with external MQTT server
 
 #### Installation
 
-*  `git clone https://github.com/ubikampus/ubi-Indoor-Positioning.git`
-*  `cd ubi-Indoor-Positioning`
+*  `git clone https://github.com/ubikampus/ubilocation-server.git`
+*  `cd ubilocation-server`
 *  `./scripts/masterScript.sh`
 
 #### Usage
@@ -65,11 +65,11 @@ And last
 *  `docker-compose -f docker-compose.prod.yml up -d`
 
 By default, journald is used for storing logs. For example all logs can be
-viewed with `sudo journalctl CONTAINER_NAME=bluetooth-location-server`
+viewed with `sudo journalctl CONTAINER_NAME=ubilocation-server`
 
 ## Configurations
 
-After properties files have been created by the three [bash scripts](https://github.com/ubikampus/Bluetooth-location-server/blob/master/scripts/) which master script called then you will find a folder called `config` if not yet existed and from there four properties files with their default values.
+After properties files have been created by the three [bash scripts](https://github.com/ubikampus/ubilocation-server/blob/master/scripts/) which master script called then you will find a folder called `config` if not yet existed and from there four properties files with their default values.
 
 ### mqttConfig.properties
 
@@ -187,4 +187,4 @@ Either `success` or `error`.
 
 ## License
 
-Code is under the [MIT License](https://github.com/ubikampus/Bluetooth-Location-Server/blob/master/LICENSE)
+Code is under the [MIT License](https://github.com/ubikampus/ubilocation-server/blob/master/LICENSE)

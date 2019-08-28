@@ -3,11 +3,11 @@ version: '3'
 # TODO: use images from dockerhub instead of building them locally.
 
 services:
-  bluetooth-location-server:
+  ubilocation-server:
     restart: unless-stopped
     logging:
       driver: journald
-    container_name: bluetooth-location-server
+    container_name: ubilocation-server
     build:
       context: .
       dockerfile: Dockerfile.prod
