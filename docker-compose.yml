@@ -22,7 +22,7 @@ services:
     environment:
       DOCKER_VERNEMQ_ALLOW_ANONYMOUS: "on"
 
-networks: 
+networks:
   ubimaps:
     name: ubimaps
     driver: bridge
