@@ -228,7 +228,7 @@ public class App {
 
     private static void addObservation(Observation observation) {
         if (!beacons.containsKey(observation.getBeaconId())) {
-            int observationLifetime = 5000;
+            int observationLifetime = 5;
             beacons.put(observation.getBeaconId(), new Beacon(observation.getBeaconId(), observationLifetime));
         }
 
